@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    command: bash -c "python start.py"
+    environment:
+      - PYTHON_PATH=/code/
+    ports:
+      - "8080:8080"
