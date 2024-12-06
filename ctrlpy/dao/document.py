@@ -3,16 +3,15 @@
 The document class wraps and abstracts the database and the various SQL
 driving functions. It serves as the base class with is inherited by the
 Collection and Object classes."""
-import sqlite3
 import pickle
 import re
-
 from typing import Any, Dict, List
 
-from ctrlpy.controller import logging
+import psycopg2
 
+from ctrlpy.controller import logging
 from .utils import (
-    DEFAULT_CONNECTION_STR, Operator, get_uuid_str, read_key_at_path, coerce
+    Operator, get_uuid_str, read_key_at_path, coerce
 )
 
 class Document:
@@ -20,53 +19,50 @@ class Document:
     functions. The class manages objects, collections, and collection
     attributes. Additonally, there is functionality for searching and
     enumerating collections."""
-    def __init__(self, connection_str: str = DEFAULT_CONNECTION_STR):
+    def __init__(self):
         """This function instantiates a document object and initiallizes
-        the database if it hasn't been initialized yet.
+        the database if it hasn't been initialized yet."""
 
-        Args:
-            connection_str:
-                A Sqlite connection string."""
-        self.connection_str = connection_str
-        self.connection = sqlite3.connect(self.connection_str, 300)
-        self.connection.text_factory = str
+        self.connection = psycopg2.connect(
+            database="ctrlpy",
+            host="127.0.0.1",
+            user="postgres",
+            password="postgres",
+            port="5432"
+        )
 
         self.cursor = self.connection.cursor()
 
-        self.cursor.execute("PRAGMA foreign_keys = ON")
-        self.cursor.execute("PRAGMA case_sensitive_like = ON")
-        self.connection.commit()
-
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_JSON_COL (
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_COLLECTIONS (
                                COLUUID VARCHAR(36),
                                NAME VARCHAR(64) UNIQUE NOT NULL,
                                PRIMARY KEY (COLUUID));''')
 
         # pylint: disable=line-too-long
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_JSON_OBJ (
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_OBJECTS (
                                OBJUUID VARCHAR(36),
                                COLUUID VARCHAR(36),
-                               VALUE BLOB NOT NULL,
+                               VALUE BYTEA NOT NULL,
                                PRIMARY KEY (OBJUUID),
-                               FOREIGN KEY (COLUUID) REFERENCES TBL_JSON_COL(COLUUID) ON DELETE CASCADE);''')
+                               FOREIGN KEY (COLUUID) REFERENCES TBL_COLLECTIONS(COLUUID) ON DELETE CASCADE);''')
 
         # pylint: disable=line-too-long
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_JSON_ATTR (
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_ATTRIBUTES (
                                COLUUID VARCHAR(36),
                                ATTRIBUTE VARCHAR(64),
                                PATH VARCHAR(64),
                                PRIMARY KEY (COLUUID, ATTRIBUTE),
-                               FOREIGN KEY (COLUUID) REFERENCES TBL_JSON_COL(COLUUID) ON DELETE CASCADE);''')
+                               FOREIGN KEY (COLUUID) REFERENCES TBL_COLLECTIONS(COLUUID) ON DELETE CASCADE);''')
 
         # pylint: disable=line-too-long
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_JSON_IDX (
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS TBL_INDEX (
                                OBJUUID VARCHAR(36),
                                COLUUID VARCHAR(36),
                                ATTRIBUTE VARCHAR(64),
                                VALUE VARCHAR(64),
                                PRIMARY KEY (OBJUUID, ATTRIBUTE),
-                               FOREIGN KEY (OBJUUID) REFERENCES TBL_JSON_OBJ(OBJUUID) ON DELETE CASCADE,
-                               FOREIGN KEY (COLUUID, ATTRIBUTE) REFERENCES TBL_JSON_ATTR(COLUUID, ATTRIBUTE) ON DELETE CASCADE);''')
+                               FOREIGN KEY (OBJUUID) REFERENCES TBL_OBJECTS(OBJUUID) ON DELETE CASCADE,
+                               FOREIGN KEY (COLUUID, ATTRIBUTE) REFERENCES TBL_ATTRIBUTES(COLUUID, ATTRIBUTE) ON DELETE CASCADE);''')
 
         self.connection.commit()
 
@@ -89,7 +85,7 @@ class Document:
                 The object UUID.
         """
         self.cursor.execute(
-            "insert into TBL_JSON_OBJ (COLUUID, OBJUUID, VALUE) values (?, ?, ?);",
+            "insert into TBL_OBJECTS (COLUUID, OBJUUID, VALUE) values (%s, %s, %s);",
             (coluuid, objuuid, pickle.dumps({"objuuid": objuuid, "coluuid": coluuid}))
         )
         self.connection.commit()
@@ -112,18 +108,19 @@ class Document:
         """
         updated_object["objuuid"] = objuuid
         updated_object["coluuid"] = coluuid
+
         self.cursor.execute(
-            "update TBL_JSON_OBJ set VALUE = ? where OBJUUID = ?;",
+            "update TBL_OBJECTS set VALUE = %s where OBJUUID = %s;",
             (pickle.dumps(updated_object), objuuid)
         )
 
-        self.cursor.execute("delete from TBL_JSON_IDX where OBJUUID = ?;", (objuuid,))
+        self.cursor.execute("delete from TBL_INDEX where OBJUUID = %s;", (objuuid,))
 
         for attribute, path in self.list_attributes(coluuid).items():
             try:
                 self.cursor.execute(
-                    "insert into TBL_JSON_IDX (OBJUUID, COLUUID, ATTRIBUTE, VALUE)"\
-                    "values (?, ?, ?, ?);",
+                    "insert into TBL_INDEX (OBJUUID, COLUUID, ATTRIBUTE, VALUE)"\
+                    "values (%s, %s, %s, %s);",
                     (
                         objuuid,
                         coluuid,
@@ -154,9 +151,11 @@ class Document:
             IndexError:
                 This is raised when a requested object does not exist.
         """
-        self.cursor.execute("select VALUE from TBL_JSON_OBJ where OBJUUID = ?;", (objuuid,))
+        self.cursor.execute("select VALUE from TBL_OBJECTS where OBJUUID = %s;", (objuuid,))
         self.connection.commit()
+
         return pickle.loads(self.cursor.fetchall()[0][0])
+
 
 
     def find_objuuids(self, coluuid: str, *params: str, **kwparams: Any) -> List[str]: # pylint: disable=too-many-locals,too-many-branches,too-many-statements
@@ -278,8 +277,8 @@ class Document:
             # process operator
             if operator == Operator.EQ and not negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE = ? and COLUUID = ?;",
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE = %s and COLUUID = %s;",
                     (attribute, subject, coluuid)
                 )
                 self.connection.commit()
@@ -287,8 +286,8 @@ class Document:
 
             elif operator == Operator.EQ and negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE != ? and COLUUID = ?;",
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE != %s and COLUUID = %s;",
                     (attribute, subject, coluuid)
                 )
                 self.connection.commit()
@@ -296,62 +295,62 @@ class Document:
 
             elif operator == Operator.CONTAINS and not negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE like '%?%' and COLUUID = ?;",
-                    (attribute, subject, coluuid)
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE like %s and COLUUID = %s;",
+                    (attribute, f'%{subject}%', coluuid)
                 )
                 self.connection.commit()
                 objuuid_lists.append([row[0] for row in self.cursor.fetchall()])
 
             elif operator == Operator.CONTAINS and negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE not like '%?%' and COLUUID = ?;",
-                    (attribute, subject, coluuid)
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE not like %s and COLUUID = %s;",
+                    (attribute, f'%{subject}%', coluuid)
                 )
                 self.connection.commit()
                 objuuid_lists.append([row[0] for row in self.cursor.fetchall()])
 
             elif operator == Operator.STARTSWITH and not negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE like '?%' and COLUUID = ?;",
-                    (attribute, subject, coluuid)
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE like %s and COLUUID = %s;",
+                    (attribute, f'{subject}%', coluuid)
                 )
                 self.connection.commit()
                 objuuid_lists.append([row[0] for row in self.cursor.fetchall()])
 
             elif operator == Operator.STARTSWITH and negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE not like '?%' and COLUUID = ?;",
-                    (attribute, subject, coluuid)
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE not like %s and COLUUID = %s;",
+                    (attribute, f'{subject}%', coluuid)
                 )
                 self.connection.commit()
                 objuuid_lists.append([row[0] for row in self.cursor.fetchall()])
 
             elif operator == Operator.ENDSWITH and not negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE like '%?' and COLUUID = ?;",
-                    (attribute, subject, coluuid)
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE like %s and COLUUID = %s;",
+                    (attribute, f'%{subject}', coluuid)
                 )
                 self.connection.commit()
                 objuuid_lists.append([row[0] for row in self.cursor.fetchall()])
 
             elif operator == Operator.ENDSWITH and negation:
                 self.cursor.execute(
-                    "select OBJUUID from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and VALUE not like '%?' and COLUUID = ?;",
-                    (attribute, subject, coluuid)
+                    "select OBJUUID from TBL_INDEX \
+                     where ATTRIBUTE = %s and VALUE not like %s and COLUUID = %s;",
+                    (attribute, f'%{subject}', coluuid)
                 )
                 self.connection.commit()
                 objuuid_lists.append([row[0] for row in self.cursor.fetchall()])
 
             else:
                 self.cursor.execute(
-                    "select OBJUUID, VALUE from TBL_JSON_IDX \
-                     where ATTRIBUTE = ? and COLUUID = ?;",
+                    "select OBJUUID, VALUE from TBL_INDEX \
+                     where ATTRIBUTE = %s and COLUUID = %s;",
                     (attribute, coluuid)
                 )
                 self.connection.commit()
@@ -401,7 +400,7 @@ class Document:
         Args:
             objuuid:
                 The object's UUID."""
-        self.cursor.execute("delete from TBL_JSON_OBJ where OBJUUID = ?;", (objuuid,))
+        self.cursor.execute("delete from TBL_OBJECTS where OBJUUID = %s;", (objuuid,))
         self.connection.commit()
 
     def create_attribute(self, coluuid: str, attribute: str, path: str):
@@ -425,20 +424,20 @@ class Document:
                 The attribute path.
         """
         self.cursor.execute(
-            "insert into TBL_JSON_ATTR (COLUUID, ATTRIBUTE, PATH) values (?, ?, ?);",
+            "insert into TBL_ATTRIBUTES (COLUUID, ATTRIBUTE, PATH) values (%s, %s, %s);",
             (coluuid, attribute, path)
         )
 
         self.cursor.execute(
-            "select OBJUUID, VALUE from TBL_JSON_OBJ where COLUUID = ?;", (coluuid,)
+            "select OBJUUID, VALUE from TBL_OBJECTS where COLUUID = %s;", (coluuid,)
         )
 
         for row in self.cursor.fetchall():
             objuuid = row[0]
             try:
                 self.cursor.execute(
-                    "insert into TBL_JSON_IDX (OBJUUID, COLUUID, ATTRIBUTE, VALUE)"\
-                    "values (?, ?, ?, ?);",
+                    "insert into TBL_INDEX (OBJUUID, COLUUID, ATTRIBUTE, VALUE)"\
+                    "values (%s, %s, %s, %s);",
                     (
                         objuuid,
                         coluuid,
@@ -466,12 +465,12 @@ class Document:
                 The attribute name.
         """
         self.cursor.execute(
-            "delete from TBL_JSON_ATTR where COLUUID = ? and ATTRIBUTE = ?;",
+            "delete from TBL_ATTRIBUTES where COLUUID = %s and ATTRIBUTE = %s;",
             (coluuid, attribute)
         )
 
         self.cursor.execute(
-            "delete from TBL_JSON_IDX where ATTRIBUTE = ? and COLUUID = ?;",
+            "delete from TBL_INDEX where ATTRIBUTE = %s and COLUUID = %s;",
             (attribute, coluuid)
         )
 
@@ -490,7 +489,7 @@ class Document:
             A dictionary of attribute paths keyed by their attribute names.
         """
         self.cursor.execute(
-            "select ATTRIBUTE, PATH from TBL_JSON_ATTR where COLUUID = ?;",
+            "select ATTRIBUTE, PATH from TBL_ATTRIBUTES where COLUUID = %s;",
             (coluuid,)
         )
 
@@ -515,7 +514,7 @@ class Document:
         coluuid = get_uuid_str()
 
         self.cursor.execute(
-            "insert into TBL_JSON_COL (COLUUID, NAME) values (?, ?);",
+            "insert into TBL_COLLECTIONS (COLUUID, NAME) values (%s, %s);",
             (coluuid, name)
         )
 
@@ -530,7 +529,7 @@ class Document:
             coluuid:
                 The collection's UUID.
         """
-        self.cursor.execute("delete from TBL_JSON_COL where COLUUID = ?;", (coluuid,))
+        self.cursor.execute("delete from TBL_COLLECTIONS where COLUUID = %s;", (coluuid,))
         self.connection.commit()
 
     def list_collections(self) -> Dict[str, str]:
@@ -540,7 +539,7 @@ class Document:
         Returns:
             A dictionary of names and collection UUIDs.
         """
-        self.cursor.execute("select NAME, COLUUID from TBL_JSON_COL;")
+        self.cursor.execute("select NAME, COLUUID from TBL_COLLECTIONS;")
         self.connection.commit()
 
         collections = {}
@@ -554,7 +553,7 @@ class Document:
         Returns:
             A list of object UUIDs.
         """
-        self.cursor.execute("select OBJUUID from TBL_JSON_OBJ where COLUUID = ?;", (coluuid,))
+        self.cursor.execute("select OBJUUID from TBL_OBJECTS where COLUUID = %s;", (coluuid,))
         self.connection.commit()
         return [row[0] for row in self.cursor.fetchall()]
 

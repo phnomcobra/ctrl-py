@@ -8,7 +8,7 @@ from .utils import get_uuid_str
 class Collection(Document):
     """This class implements the document object collection. This is the primary
     interface for searching and accessing objects."""
-    def __init__(self, collection_name: str, connection_str: str = None):
+    def __init__(self, collection_name: str):
         """This method contructs a collection instance. A collection name and
         optionally a sqlite connection string is used for resolving or creating
         a new document collection.
@@ -16,18 +16,9 @@ class Collection(Document):
         Args:
             collection_name:
                 A collection's name.
-
-            connection_str:
-                A sqlite connection str.
         """
         self.collection_name = collection_name
-        if connection_str is None:
-            self.connection_str = f'{collection_name}.sqlite'
-        else:
-            self.connection_str = connection_str
-
-        Document.__init__(self, connection_str=self.connection_str)
-
+        Document.__init__(self)
         try:
             self.coluuid = Document.list_collections(self)[self.collection_name]
         except KeyError:
@@ -130,7 +121,7 @@ class Collection(Document):
 
         objects = []
         for objuuid in objuuids:
-            objects.append(Object(self.coluuid, objuuid, connection_str=self.connection_str))
+            objects.append(Object(self.coluuid, objuuid))
 
         return objects
 
@@ -203,8 +194,7 @@ class Collection(Document):
         """
         return Object(
             self.coluuid,
-            get_uuid_str() if objuuid is None else objuuid,
-            connection_str=self.connection_str
+            get_uuid_str() if objuuid is None else objuuid
         )
 
     def list_objuuids(self) -> List[str]:

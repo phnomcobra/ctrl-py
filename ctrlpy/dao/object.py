@@ -2,12 +2,11 @@
 import json
 
 from .document import Document
-from .utils import DEFAULT_CONNECTION_STR
 
 class Object(Document):
     """This class encapsulates a collection object and implements methods
     for construction, loading, setting, and destroying collection objects."""
-    def __init__(self, coluuid: str, objuuid: str, connection_str: str = DEFAULT_CONNECTION_STR):
+    def __init__(self, coluuid: str, objuuid: str):
         """This function initilizes an instance of a collection object. It
         initializes a document instance and loads the object from it.
 
@@ -16,11 +15,8 @@ class Object(Document):
                 The collection UUID.
 
             objuuid:
-                The object UUID.
-
-            connection_str:
-                The sqlite connection string the document instance will use."""
-        Document.__init__(self, connection_str=connection_str)
+                The object UUID."""
+        Document.__init__(self)
         self.objuuid = objuuid
         self.coluuid = coluuid
         self.object = None

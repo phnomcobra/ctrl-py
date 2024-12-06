@@ -6,8 +6,6 @@ from typing import Any
 from uuid import uuid4
 from enum import Enum, auto
 
-DEFAULT_CONNECTION_STR = "default.sqlite"
-
 class Operator(Enum):
     """Valid Operators to decode from find parameters"""
     EQ = auto()

@@ -1,10 +1,11 @@
 version: "3"
 
 services:
-  web:
-    build: .
-    command: bash -c "python start.py"
-    environment:
-      - PYTHON_PATH=/code/
+  db:
+    image: postgres
     ports:
-      - "8080:8080"
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ctrlpy

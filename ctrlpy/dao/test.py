@@ -13,7 +13,7 @@ class TestCollection(unittest.TestCase):
     def setUp(self):
         """Initialize a test collection, create object attributes, and set objects to test with."""
         test_id = random()
-        self.collection = Collection(f'collection-test-{test_id}', 'file::memory:?cache=shared')
+        self.collection = Collection(f'collection-test-{test_id}')
 
         self.collection.create_attribute('color', '/color')
         self.collection.create_attribute('size', '/size')
@@ -43,9 +43,25 @@ class TestCollection(unittest.TestCase):
         item.object['color'] = 'green'
         item.set()
 
+    def tearDown(self):
+        """Cleanup test collection"""
+        self.collection.destroy()
+
     def test_find_all(self):
         """Test find all"""
         self.assertEqual(len(self.collection.find()), 4)
+
+    def test_find_op_startswith(self):
+        """Test starts with operator"""
+        self.assertEqual(len(self.collection.find(name='$startswith:lem')), 1)
+
+    def test_find_op_endswith(self):
+        """Test ends with operator"""
+        self.assertEqual(len(self.collection.find(name='$endswith:mon')), 1)
+
+    def test_find_op_contains(self):
+        """Test contains with operator"""
+        self.assertEqual(len(self.collection.find(name='$contains:emo')), 1)
 
     def test_find_op_inside(self):
         """Test inside operator"""
@@ -88,6 +104,14 @@ class TestCollection(unittest.TestCase):
         )
         self.assertEqual(len(items), 1)
 
+    def test_find_op_invert_eq_combo(self):
+        """Test inverted combination of equality operators"""
+        items = self.collection.find(
+            color='$!eq:green',
+            size='$!eq:2'
+        )
+        self.assertEqual(len(items), 1)
+
     def test_find_op_gt_lt_combo(self):
         """Test combination of inequality operators"""
         items = self.collection.find(
@@ -101,8 +125,12 @@ class TestDatastore(unittest.TestCase):
     def setUp(self):
         """Initialize a test collection and create object attributes."""
         test_id = random()
-        self.collection = Collection(f'collection-test-{test_id}', 'file::memory:?cache=shared')
+        self.collection = Collection(f'collection-test-{test_id}')
         self.collection.create_attribute("type", "/type")
+
+    def tearDown(self):
+        """Cleanup test collection"""
+        self.collection.destroy()
 
     def test_file_write_read_1m(self):
         """Generate a 1MB test file, put it into the datastore,
