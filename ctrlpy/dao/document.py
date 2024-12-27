@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 
 import psycopg2
 
-from ctrlpy.controller import logging
+from ctrlpy.audit import logging
 from .utils import (
     Operator, get_uuid_str, read_key_at_path, coerce
 )
@@ -22,6 +22,12 @@ class Document:
     def __init__(self):
         """This function instantiates a document object and initiallizes
         the database if it hasn't been initialized yet."""
+
+        # USER = os.environ.get("POSTGRES_USER")
+        # PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+        # HOST = os.environ.get("POSTGRES_HOST")
+        # PORT = os.environ.get("POSTGRES_PORT")
+        # DB_NAME = os.environ.get("POSTGRES_DB")
 
         self.connection = psycopg2.connect(
             database="ctrlpy",
@@ -155,8 +161,6 @@ class Document:
         self.connection.commit()
 
         return pickle.loads(self.cursor.fetchall()[0][0])
-
-
 
     def find_objuuids(self, coluuid: str, *params: str, **kwparams: Any) -> List[str]: # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """This function finds a list of object UUIDs by matching a value to an

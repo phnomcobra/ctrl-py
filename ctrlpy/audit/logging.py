@@ -74,7 +74,7 @@ def _log(item: Any, level: LogLevel):
         level:
             A `LogLevel` enum indicating what log level to use.
     """
-    logger = logging.getLogger('app')
+    logger = logging.getLogger('application.log')
     lines = str(item).split("\n")
 
     frame = stack()[2]
@@ -96,4 +96,4 @@ def _log(item: Any, level: LogLevel):
         elif level is LogLevel.INFO:
             logger.info(log_line)
         elif level is LogLevel.DEBUG:
-            logger.debug(log_line)
+            logger.info(log_line)

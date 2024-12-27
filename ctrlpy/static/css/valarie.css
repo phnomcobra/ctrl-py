@@ -1,0 +1,247 @@
+#procedureResultAccordion td {
+  min-width: 200px;
+}
+
+#procedureResultAccordion {
+  padding: 10px;
+}
+
+#taskResultAccordion {
+  padding: 10px;
+}
+
+.panel-heading {
+  padding: 5px;
+}
+
+.panel-default {
+  padding-bottom: 0px;
+}
+
+.panel-body {
+  padding: 10px;
+  font-size: small;
+  padding-bottom: 0px;
+}
+
+#wrapper {
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+  padding-left: 0;
+  padding-top: 50px;
+}
+
+#wrapper.toggled {
+  padding-left: 400px;
+  padding-top: 50px;    
+}
+
+#sidebar-wrapper {
+  position: fixed;
+  left: 400px;
+  width: 0;
+  height: calc(100% - 25px);
+  padding-top: 60px;
+  margin-left: -400px;
+  overflow: hidden;
+  background: white;
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+
+#page-content-wrapper {
+  height: calc(100% - 120px);
+  padding: 10px;
+  overflow: hidden;
+  position: fixed;
+}
+
+#console {
+  height: calc(100vh - 120px);
+  width: 100%;
+  overflow: hidden;
+  font-size: small;
+  padding: 10px;  
+  font-family: monospace;
+}
+
+#console td {
+  padding-left: 10px;
+  text-align: justify;
+  vertical-align: top;
+  padding-right: 10px;
+}
+
+.edge-to-edge {
+  padding: 0px;
+}
+
+#body {
+  height: calc(100vh - 120px);
+  width: 100%;
+  overflow: auto;
+}
+
+.ace_editor {
+  height: 100%;
+  width: 100%;
+}
+
+#left-nav {
+  height: 100%;
+}
+
+.tab-content {
+  height: inherit;
+  width: inherit;
+}
+
+#queue {
+  height: inherit;
+  width: inherit;
+  overflow: auto;
+  padding: 10px;
+}
+
+#inventoryContainer {
+  height: inherit;
+  width: inherit;
+  padding: 10px;
+}
+
+#inventory {
+  height: inherit;
+  overflow: auto;
+}
+
+#attributes {
+  height: calc(100vh - 120px);
+  width: 100%;
+  overflow: auto;
+  font-size: small;
+  padding: 10px;
+}
+
+.sidebar-nav {
+  position: absolute;
+  top: 0;
+  width: 400px;
+  margin: 0;
+  padding: 0;
+}
+
+.controllerCell:hover {
+  background-color: #999 !important;
+  color: #FFF !important;
+}
+
+.controllerCell {
+  background: #CCC;
+  font-size: xx-small;
+  max-width: 40px;
+  border-style: solid;
+  border-width: 1px;
+  text-align: center;
+  border-color: #CCC;
+}
+
+.controllerHostCell:hover {
+  background-color: #999 !important;
+  color: #FFF !important;
+}
+
+.controllerHostCell {
+  font-size:x-small;
+  overflow: hidden;
+  border-style: solid;
+  border-width: thin;
+  text-align: center;
+  border-color: #CCC;
+}
+
+.controllerProcedureCell:hover {
+  background-color: #999 !important;
+  color: #FFF !important;
+}
+
+.controllerProcedureCell {
+  font-size:x-small;
+  padding-right: 10px;
+  border-color: #CCC;
+  border-style:solid;
+  border-width:thin;
+  text-align: center;
+}
+
+#controllerTable {
+  width: inherit;
+  height: inherit;
+  border-spacing: 1px;
+  border-collapse: separate;
+  padding: 10px;
+}
+
+.sidebar-nav > .sidebar-brand {
+  height: 65px;
+  font-size: 18px;
+  line-height: 60px;
+}
+
+.sidebar-nav > .sidebar-brand a {
+  color: #999999;
+}
+
+.sidebar-nav > .sidebar-brand a:hover {
+  color: #fff;
+  background: none;
+}
+
+@media(min-width:768px) {
+  #wrapper {
+    padding-left: 400px;
+  }
+
+  #wrapper.toggled {
+    padding-left: 0;
+  }
+
+  #sidebar-wrapper {
+    width: 400px;
+  }
+
+  #wrapper.toggled #sidebar-wrapper {
+    width: 0;
+  }
+
+  #page-content-wrapper {
+    padding: 20px, 20px, 20px, 0px;
+    position: relative;
+  }
+
+  #wrapper.toggled #page-content-wrapper {
+    position: relative;
+    margin-right: 0;
+  }
+}
+
+#queueTable > tbody > tr > td {
+  font-size: small;
+  padding-right: 10px;  
+  font-family: monospace;
+}
+
+.ProcedureResult {
+  font-size: small;
+  font-family: monospace;
+  width: 100%;
+}
+
+.TaskResult {
+  font-size: small;
+  font-family: monospace;
+  width: 100%;
+}
