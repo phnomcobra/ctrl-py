@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
-from ctrlpy.audit import logging as app_logger
+from ctrlpy.audit import logging as app_logging, LOGGER
 from ctrlpy.dao import Collection
 from ctrlpy.controller import (
     unlock_inventory,
@@ -22,7 +22,6 @@ from ctrlpy.routers import (
     inventory as inventory_router,
     index
 )
-
 
 def init_collections():
     """Initialize the collections and default inventory objects."""
@@ -58,9 +57,8 @@ def init_logging():
         backupCount=30
     )
 
-    logger = logging.getLogger('application.log')
-    logger.addHandler(app_log_handler)
-    logger.setLevel(logging.DEBUG)
+    LOGGER.addHandler(app_log_handler)
+    LOGGER.setLevel(logging.DEBUG)
 
     access_log_handler = TimedRotatingFileHandler(
         os.path.join(logfile_path, 'access.log'),
@@ -95,6 +93,6 @@ def start():
     app.include_router(index.router)
     app.mount("/", StaticFiles(directory=static_path), name="static")
 
-    app_logger.info('startup completed')
+    app_logging.info('startup completed')
 
     uvicorn.run(app, host="0.0.0.0", port=8080, log_config=None)

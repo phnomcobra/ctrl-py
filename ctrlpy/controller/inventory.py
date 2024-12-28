@@ -12,7 +12,7 @@ from ctrlpy.dao import Collection, Object, delete_sequence, copy_file, File
 
 from .container import create_container
 from . import kvstore
-from ..audit.logging import logging
+from ..audit import logging
 from .config import (
     CONFIG_OBJUUID,
     TASK_PROTO_OBJUUID,
@@ -228,7 +228,7 @@ def delete_node(objuuid: str):
             current = inventory.get_object(node["id"])
 
             if "name" in current.object:
-                logging.info(current.object['name'])
+                logging.debug(current.object['name'])
 
             if (
                     "type" in current.object and
@@ -346,16 +346,14 @@ def __copy_object(
             clone.object["children"] = []
             clone.object["parent"] = parent_objuuid
 
-            logging.info(f'copied {clone.object["name"]}')
+            logging.debug(f'copied {clone.object["name"]}')
 
             recstrrepl(clone.object, objuuid, clone.objuuid)
 
-
-            in_file = File(clone.object["sequuid"])
-            out_file = File()
-            copy_file(in_file, out_file)
-
             if clone.object["type"] == "binary file":
+                in_file = File(clone.object["sequuid"])
+                out_file = File()
+                copy_file(in_file, out_file)
                 clone.object["sequuid"] = out_file.sequuid
 
             clone.set()
@@ -409,7 +407,7 @@ def copy_object(objuuid: str) -> Object:
         clone.object["children"] = []
         clone.object["name"] = clone.object["name"] + " (Copy)"
 
-        logging.info(f'copied {clone.object["name"]}')
+        logging.debug(f'copied {clone.object["name"]}')
 
         recstrrepl(clone.object, objuuid, clone.objuuid)
 
@@ -442,9 +440,9 @@ def copy_object(objuuid: str) -> Object:
             new.set()
 
             if "name" in new.object:
-                logging.info(f'mutated {new.object["name"]}')
+                logging.debug(f'mutated {new.object["name"]}')
             else:
-                logging.info(f'mutated {new.objuuid}')
+                logging.debug(f'mutated {new.objuuid}')
 
         if len(child_objuuids) > 0:
             kvstore.touch("inventoryState")
@@ -504,7 +502,7 @@ def import_objects(objects: Dict[str, Object]):
 
             current.set()
 
-            logging.info(imported_object["name"])
+            logging.debug(imported_object["name"])
         except: # pylint: disable=bare-except
             logging.error(traceback.format_exc())
 
@@ -581,13 +579,13 @@ def export_files_zip(objuuids: str) -> BinaryIO:
             # zip archive can't take a leading slash or names containing colons
             filename = get_fq_name(objuuid)[1:].replace(':', '')
             if current.object["type"] == "binary file":
-                logging.info(current.object['name'])
+                logging.debug(current.object['name'])
                 archive.writestr(filename, File(current.object["sequuid"]).read())
             elif current.object["type"] == "text file":
-                logging.info(current.object['name'])
+                logging.debug(current.object['name'])
                 archive.writestr(filename, current.object["body"].encode())
             elif current.object["type"] == "result link":
-                logging.info(current.object['name'])
+                logging.debug(current.object['name'])
                 result = results.get_object(current.object['resuuid'])
                 archive.writestr(
                     f'{filename}.json',
@@ -625,7 +623,7 @@ def export_objects_zip(objuuids: str) -> BinaryIO:
         if current.object["type"] == "binary file":
             dstuuids.append(current.object["sequuid"])
 
-        logging.info(current.object['name'])
+        logging.debug(current.object['name'])
 
     mem_file = io.BytesIO()
 

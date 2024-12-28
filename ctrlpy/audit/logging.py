@@ -6,6 +6,8 @@ import logging.handlers
 from inspect import stack
 from typing import Any
 
+LOGGER = logging.getLogger('application.log')
+
 class LogLevel(Enum):
     """This class is enum for the listed log levels."""
     CRITICAL = 50
@@ -74,7 +76,6 @@ def _log(item: Any, level: LogLevel):
         level:
             A `LogLevel` enum indicating what log level to use.
     """
-    logger = logging.getLogger('application.log')
     lines = str(item).split("\n")
 
     frame = stack()[2]
@@ -88,12 +89,12 @@ def _log(item: Any, level: LogLevel):
         log_line += f':L{frame.lineno}|{frame.function}|{line}'
 
         if level is LogLevel.CRITICAL:
-            logger.critical(log_line)
+            LOGGER.critical(log_line)
         elif level is LogLevel.ERROR:
-            logger.error(log_line)
+            LOGGER.error(log_line)
         elif level is LogLevel.WARNING:
-            logger.warning(log_line)
+            LOGGER.warning(log_line)
         elif level is LogLevel.INFO:
-            logger.info(log_line)
+            LOGGER.info(log_line)
         elif level is LogLevel.DEBUG:
-            logger.info(log_line)
+            LOGGER.info(log_line)

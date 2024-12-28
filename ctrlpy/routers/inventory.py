@@ -4,7 +4,7 @@ from typing import Dict, List, Annotated
 from zipfile import ZipFile
 
 from fastapi import APIRouter, UploadFile, File, Form
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 
 from ctrlpy.audit import logging
 from ctrlpy.dao import Collection
