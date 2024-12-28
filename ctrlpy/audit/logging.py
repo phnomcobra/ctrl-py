@@ -6,6 +6,8 @@ import logging.handlers
 from inspect import stack
 from typing import Any
 
+from ctrlpy.controller.messaging import add_message
+
 LOGGER = logging.getLogger('application.log')
 
 class LogLevel(Enum):
@@ -98,3 +100,13 @@ def _log(item: Any, level: LogLevel):
             LOGGER.info(log_line)
         elif level is LogLevel.DEBUG:
             LOGGER.info(log_line)
+
+        message_line = f'{short_filename}:L{frame.lineno}|{frame.function}|{line}'
+        if level in (LogLevel.CRITICAL, LogLevel.ERROR):
+            add_message(f'<font color="red">{message_line}</font>')
+        elif level is LogLevel.WARNING:
+            add_message(f'<font color="orange">{message_line}</font>')
+        elif level is LogLevel.INFO:
+            add_message(f'<font color="green">{message_line}</font>')
+        elif level is LogLevel.DEBUG:
+            add_message(f'<font color="blue">{message_line}</font>')
