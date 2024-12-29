@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Form
 from fastapi.responses import JSONResponse
 
-from ctrlpy.controller import kvstore
+from ctrlpy.dao import cache
 from ctrlpy.schema.flags import KeyValue
 
 router = APIRouter()
@@ -29,7 +29,7 @@ def set_endpoint(key: Annotated[str, Form()], value: Annotated[str, Form()]) -> 
     return JSONResponse(
         {
             "key" : key,
-            "value" : kvstore.set(key, value)
+            "value" : cache.set(key, value)
         }
     )
 
@@ -47,7 +47,7 @@ def get_endpoint(key: Annotated[str, Form()]) -> JSONResponse:
     return JSONResponse(
         {
             "key" : key,
-            "value" : kvstore.get(key)
+            "value" : cache.get(key)
         }
     )
 
@@ -65,6 +65,6 @@ def touch_endpoint(key: Annotated[str, Form()]) -> JSONResponse:
     return JSONResponse(
         {
             "key" : key,
-            "value" : kvstore.touch(key)
+            "value" : cache.touch(key)
         }
     )

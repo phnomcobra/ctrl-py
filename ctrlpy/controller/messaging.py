@@ -3,20 +3,20 @@
 from time import sleep
 from typing import List
 
-from . import kvstore
+from ctrlpy.dao import cache
 
 def lock():
     """This function blocks execution until the message lock key in
     the key value store is set to false. Upon sensing false, set the lock
     key to true and return.
     """
-    while kvstore.get('message lock', default=False) is True:
+    while cache.get('message lock', default=False) is True:
         sleep(1)
-    kvstore.set('message lock', True)
+    cache.set('message lock', True)
 
 def unlock():
     """This function sets the message lock key ro false in the key value store."""
-    kvstore.set('message lock', False)
+    cache.set('message lock', False)
 
 def add_message(message: str):
     """This is a function used to add a message to the messages key in
@@ -29,9 +29,9 @@ def add_message(message: str):
     """
     try:
         lock()
-        messages = kvstore.get("messages", [])
+        messages = cache.get("messages", [])
         messages = [message] + messages[:49]
-        kvstore.set("messages", messages)
+        cache.set("messages", messages)
     finally:
         unlock()
 
@@ -41,4 +41,4 @@ def get_messages() -> List[str]:
     Returns:
         A list of message dictionaries.
     """
-    return kvstore.get("messages", [])
+    return cache.get("messages", [])
