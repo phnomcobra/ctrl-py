@@ -9,3 +9,4 @@ fastapi
 gunicorn
 uvicorn
 python-multipart
+redis
