@@ -8,10 +8,15 @@ from ctrlpy.dao import cache
 def lock():
     """This function blocks execution until the message lock key in
     the key value store is set to false. Upon sensing false, set the lock
-    key to true and return.
+    key to true and return. There is an exponential backoff up to 10
+    seconds to bypass an abandoned message lock.
     """
+    period = 0.1
     while cache.get('message lock', default=False) is True:
-        sleep(1)
+        sleep(period)
+        period *= 2.0
+        if period > 10:
+            break
     cache.set('message lock', True)
 
 def unlock():

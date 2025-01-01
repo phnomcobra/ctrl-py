@@ -22,7 +22,7 @@ def set(key: str, value: Any) -> Any: # pylint: disable=redefined-builtin
     CLIENT.set(key, pickle.dumps(value))
     return value
 
-def get(key: str, default: Any = None): # pylint: disable=redefined-builtin
+def get(key: str, default: Any = None):
     """This function sets a key value in redis
 
     Args:
@@ -42,12 +42,10 @@ def get(key: str, default: Any = None): # pylint: disable=redefined-builtin
     else:
         try:
             return pickle.loads(value)
-        except Exception as error:
+        except (pickle.UnpicklingError, ValueError) as error:
             logging.warning(f'failed to read {key}: {error}')
             CLIENT.set(pickle.dumps(default))
             return default
-
-    return value
 
 def touch(key: str) -> float:
     """This function touches the key specified by setting
@@ -83,7 +81,7 @@ def publish(channel: str, message: Any):
         message:
             Item being published.
     """
-    CLIENT.publish(channel, message)
+    CLIENT.publish(channel, pickle.dumps(message))
 
 def read(channel: str) -> Any:
     """Read from a channel.
@@ -94,4 +92,13 @@ def read(channel: str) -> Any:
     """
     pubsub = CLIENT.pubsub()
     pubsub.subscribe(channel)
-    return pubsub.get_message()
+    response = pubsub.get_message()
+
+    if response is None:
+        return None
+
+    try:
+        return pickle.loads(pubsub.get_message())
+    except (pickle.UnpicklingError, ValueError) as error:
+        logging.warning(f'failed to read {channel}: {error}')
+        return None

@@ -79,7 +79,7 @@ def create_config() -> Object:
         "type" : "config",
         "parent" : SETTINGS_CONTAINER_OBJUUID,
         "concurrency" : 20,
-        "brand" : "valarie",
+        "brand" : "ctrl-py",
         "children" : [],
         "name" : "Configuration",
         "icon" : "/images/config_icon.png",
