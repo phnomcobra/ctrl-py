@@ -14,6 +14,9 @@ from ctrlpy.controller import (
     set_parent_objuuid,
     copy_object,
     create_container,
+    create_task,
+    create_text_file,
+    create_host,
     delete_node,
     get_context_menu,
     export_objects_zip,
@@ -88,66 +91,8 @@ def create_container_endpoint(objuuid: Annotated[str, Form()]) -> InventoryObjec
     """
     return create_container(objuuid, "New Container").object
 
-'''
-
-@router.post("/create_host")
-def create_host_endpoint(*, objuuid: str) -> Object:
-    """This function registers the endpoint that creates a host
-    object in the inventory.
-
-    Args:
-        objuuid:
-            The UUID of the host's parent object.
-
-    Returns:
-        JSON string of the newly created inventory object.
-    """
-    return create_host(objuuid, "New Host").object
-
-@router.post("/create_text_file")
-def create_text_file_endpoint(*, objuuid: str) -> Object:
-    """This function registers the endpoint that creates a text file
-    object in the inventory.
-
-    Args:
-        objuuid:
-            The UUID of the text file's parent object.
-
-    Returns:
-        JSON string of the newly created inventory object.
-    """
-    return create_text_file(objuuid, "New Text File.txt").object
-
-@router.post("/create_host_group")
-def create_host_group_endpoint(*, objuuid: str) -> Object:
-    """This function registers the endpoint that creates a host group
-    object in the inventory.
-
-    Args:
-        objuuid:
-            The UUID of the host groups's parent object.
-
-    Returns:
-        JSON string of the newly created inventory object.
-    """
-    return create_host_group(objuuid, "New Host Group").object
-
-@router.post("/create_console")
-def create_console_endpoint(*, objuuid: str) -> Object:
-    """This function registers the endpoint that creates a console
-    object in the inventory.
-
-    Args:
-        objuuid:
-            The UUID of the console's parent object.export_objects_zip
-
-    Returns:
-        JSON string of the newly created inventory object.
-    """
-    return create_console(objuuid, "New Console").object
-
-@router.post("/create_task")
-def create_task_endpoint(*, objuuid: str) -> Object:
+@router.post("/create_task", response_model=InventoryObject)
+def create_task_endpoint(objuuid: Annotated[str, Form()]) -> InventoryObject:
     """This function registers the endpoint that creates a task
     object in the inventory.
 
@@ -160,19 +105,37 @@ def create_task_endpoint(*, objuuid: str) -> Object:
     """
     return create_task(objuuid, "New Task").object
 
-@router.post("/create_status_code")
-def create_status_code_endpoint(*, objuuid: str) -> Object:
-    """This function registers the endpoint that creates a status
-    code object in the inventory.
+@router.post("/create_text_file", response_model=InventoryObject)
+def create_text_file_endpoint(objuuid: Annotated[str, Form()]) -> InventoryObject:
+    """This function registers the endpoint that creates a text file
+    object in the inventory.
 
     Args:
         objuuid:
-            The UUID of the status code's parent object.
+            The UUID of the text file's parent object.
 
     Returns:
         JSON string of the newly created inventory object.
     """
-    return create_status_code(objuuid, "New Status Code").object
+    return create_text_file(objuuid, "New Text File.txt").object
+
+@router.post("/create_host", response_model=InventoryObject)
+def create_host_endpoint(objuuid: Annotated[str, Form()]) -> InventoryObject:
+    """This function registers the endpoint that creates a host
+    object in the inventory.
+
+    Args:
+        objuuid:
+            The UUID of the host's parent object.
+
+    Returns:
+        JSON string of the newly created inventory object.
+    """
+    return create_host(objuuid, "New Host").object
+
+'''
+
+
 
 @router.post("/create_procedure")
 def create_procedure_endpoint(*, objuuid: str) -> Object:
@@ -187,20 +150,6 @@ def create_procedure_endpoint(*, objuuid: str) -> Object:
         JSON string of the newly created inventory object.
     """
     return create_procedure(objuuid, "New Procedure").object
-
-@router.post("/create_controller")
-def create_controller_endpoint(*, objuuid: str) -> Object:
-    """This function registers the endpoint that creates a controller
-    object in the inventory.
-
-    Args:
-        objuuid:
-            The UUID of the controller's parent object.
-
-    Returns:
-        JSON string of the newly created inventory object.
-    """
-    return create_controller(objuuid, "New Controller").object
 
 '''
 
@@ -246,18 +195,6 @@ def get_object_endpoint(objuuid: Annotated[str, Form()]) -> InventoryObject:
         Inventory object.
     """
     return Collection("inventory").get_object(objuuid).object
-
-'''
-@router.get("/get_status_objects")
-def get_status_objects_endpoint(cls) -> List:
-    """This function registers the endpoint that retrieves a
-    list of status objects that are present in the inventory.
-
-    Returns:
-        JSON string of the status code objects.
-    """
-    return get_status_objects()
-'''
 
 @router.post("/post_object", response_model=InventoryObject)
 def post_object_endpoint(posted_object: InventoryObject) -> InventoryObject:

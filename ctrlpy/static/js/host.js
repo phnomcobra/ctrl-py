@@ -9,22 +9,15 @@ var editHost = function() {
     initAttributes();
     addAttributeText('Host UUID', 'objuuid');
     addAttributeTextBox('Name', 'name');
-    addAttributeTextBox('Host', 'host');
-    addAttributeTextBox('Max Concurrency', 'concurrency');
-    addAttributeTextArea('Configuration', 'config');
-
-    $.ajax({
-        'url' : 'console/get_consoles',
-        'dataType' : 'json',
-        'method': 'POST',
-        'success' : function(resp) {
-            var radioButtons = [];
-            for(var i = 0; i < resp.length; i++) {
-                radioButtons.push({'name' : resp[i].name, 'value' : resp[i].objuuid});
-            }
-            addAttributeRadioGroup('Console', 'console', radioButtons)
-        }
-    });
+    addAttributeTextBox('Controller URL', 'controller');
+    addAttributeTextBox('Log Level', 'loglevel');
+    addAttributeCheckBox('Enabled', 'enabled');
+    addAttributeTextBox('Seconds', 'seconds');
+    addAttributeTextBox('Minutes', 'minutes');
+    addAttributeTextBox('Hours', 'hours');
+    addAttributeTextBox('Day of Month', 'dayofmonth');
+    addAttributeTextBox('Day of Week', 'dayofweek');
+    addAttributeTextBox('Year', 'year');
 }
 
 var loadAndEditHost = function(objuuid) {

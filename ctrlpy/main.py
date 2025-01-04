@@ -13,7 +13,6 @@ from ctrlpy.dao import Collection
 from ctrlpy.controller import (
     unlock_inventory,
     create_config,
-    create_console_template,
     create_settings_container,
     create_task_template,
     create_container
@@ -40,7 +39,6 @@ def init_collections():
 
     if not inventory.find(type="config"):
         create_config()
-        create_console_template()
         create_task_template()
         create_settings_container()
 

@@ -1,32 +1,7 @@
-from datetime import date, datetime
+"""This module implements the schemas for JS tree nodes, context menus, and inventory objects."""
 from typing import Any, List, Dict, Optional
-import uuid
 
-from pydantic import BaseModel, IPvAnyNetwork, PositiveInt
-
-class IPAttributeBaseSchema(BaseModel):
-    """Common properties"""
-    data_value: IPvAnyNetwork
-    comment: Optional[str] = ""
-    date_first_seen: Optional[date] = "1970-01-01"
-    date_last_seen: Optional[date] = "1970-01-01"
-    enable_correlation: bool = True
-    event_id: PositiveInt = 1
-    is_deleted: bool = False
-
-
-'''
-node = {
-            "id": current.objuuid,
-            "parent": current.object["parent"],
-            "text": current.object["name"],
-            "type": current.object["type"]
-        }
-
-        if "icon" in current.object:
-            node["icon"] = current.object["icon"]
-
-'''
+from pydantic import BaseModel
 
 class JsTreeNode(BaseModel):
     """Common properties"""
@@ -49,6 +24,7 @@ class ContextMenuItem(BaseModel):
 
 class InventoryObject(BaseModel):
     """Common properties"""
+    # inventory
     type: str = ""
     parent: str = ""
     children: List[str] = []
@@ -57,9 +33,25 @@ class InventoryObject(BaseModel):
     icon: str = ""
     objuuid: str = ""
     coluuid: str = ""
+    brand: Optional[str] = ""
+
+    # files
     body: Optional[str] = None
     language: Optional[str] = None
     size: Optional[int] = None
     sha1sum: Optional[str] = None
     sequuid: Optional[str] = None
 
+    # executor
+    loglevel: Optional[str] = "20"
+    runonce: Optional[bool] = False
+
+    # scheduling
+    enabled: Optional[bool] = True
+    runonce: Optional[bool] = False
+    seconds: Optional[str] = "*"
+    minutes: Optional[str] = "*"
+    hours: Optional[str] = "*"
+    dayofmonth: Optional[str] = "*"
+    dayofweek: Optional[str] = "*"
+    year: Optional[str] = "*"

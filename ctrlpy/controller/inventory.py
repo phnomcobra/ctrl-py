@@ -16,18 +16,16 @@ from ..audit import logging
 from .config import (
     CONFIG_OBJUUID,
     TASK_PROTO_OBJUUID,
-    CONSOLE_PROTO_OBJUUID,
     SETTINGS_CONTAINER_OBJUUID
 )
 
 FIXED_OBJUUIDS = (
     CONFIG_OBJUUID,
     TASK_PROTO_OBJUUID,
-    CONSOLE_PROTO_OBJUUID,
     SETTINGS_CONTAINER_OBJUUID,
 )
 
-IMMOBILE_TYPES = ["result link"]
+IMMOBILE_TYPES = []
 
 def lock():
     """This function blocks execution until the inventory lock key in
@@ -584,13 +582,10 @@ def export_files_zip(objuuids: str) -> BinaryIO:
             elif current.object["type"] == "text file":
                 logging.debug(current.object['name'])
                 archive.writestr(filename, current.object["body"].encode())
-            elif current.object["type"] == "result link":
+            elif current.object["type"] == "result":
                 logging.debug(current.object['name'])
                 result = results.get_object(current.object['resuuid'])
-                archive.writestr(
-                    f'{filename}.json',
-                    json.dumps(result.object, indent=4).encode()
-                )
+                archive.writestr(f'{filename}.txt', result.object['body'].encode())
 
         mem_file.seek(0)
 
@@ -614,9 +609,6 @@ def export_objects_zip(objuuids: str) -> BinaryIO:
 
     for objuuid in objuuids.split(","):
         current = inventory.get_object(objuuid)
-
-        if current.object["type"] in ["result link"]:
-            continue
 
         output[objuuid] = current.object
 

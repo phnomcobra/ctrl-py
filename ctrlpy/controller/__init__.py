@@ -15,7 +15,6 @@ from .inventory import (
 
 from .config import (
     create_config,
-    create_console_template,
     create_settings_container,
     create_task_template
 )
@@ -25,3 +24,12 @@ from .file import (
     load_files,
     load_zip,
 )
+
+from .task import create_task
+
+from .file import (
+    create_binary_file,
+    create_text_file
+)
+
+from .host import create_host
