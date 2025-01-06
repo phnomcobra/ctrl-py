@@ -333,6 +333,9 @@ $('#inventory').on('select_node.jstree', function (evt, data) {
                                     } else if(obj.item.method == 'edit host') {
                                         inventoryObject = resp;
                                         editHost();
+                                    } else if(obj.item.method == 'wake host') {
+                                        wakeHost();
+                                        $('.nav-tabs a[href="#console"]').tab('show');
                                     } else if(obj.item.method == 'edit controller') {
                                         inventoryObject = resp;
                                         editController();

@@ -45,6 +45,7 @@ class InventoryObject(BaseModel):
     # executor
     loglevel: Optional[str] = "20"
     runonce: Optional[bool] = False
+    url: Optional[str] = None
 
     # scheduling
     enabled: Optional[bool] = True

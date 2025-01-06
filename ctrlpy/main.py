@@ -21,7 +21,8 @@ from ctrlpy.routers import (
     inventory as inventory_router,
     index,
     flags,
-    messaging
+    messaging,
+    host
 )
 
 def init_collections():
@@ -92,6 +93,7 @@ def start():
     app.include_router(inventory_router.router, prefix="/inventory")
     app.include_router(flags.router, prefix="/flags")
     app.include_router(messaging.router, prefix="/messaging")
+    app.include_router(host.router, prefix="/host")
     app.include_router(index.router)
     app.mount("/", StaticFiles(directory=static_path), name="static")
 

@@ -9,7 +9,7 @@ var editHost = function() {
     initAttributes();
     addAttributeText('Host UUID', 'objuuid');
     addAttributeTextBox('Name', 'name');
-    addAttributeTextBox('Controller URL', 'controller');
+    addAttributeTextBox('Controller URL', 'url');
     addAttributeTextBox('Log Level', 'loglevel');
     addAttributeCheckBox('Enabled', 'enabled');
     addAttributeTextBox('Seconds', 'seconds');
@@ -34,5 +34,14 @@ var loadAndEditHost = function(objuuid) {
             editHost();
             expandToNode(inventoryObject.objuuid);
         }
+    });
+}
+
+var wakeHost = function(objuuid) {
+    $.ajax({
+        'url' : 'host/wake',
+        'dataType' : 'json',
+        'method': 'POST',
+        'data' : {'objuuid' : objuuid},
     });
 }

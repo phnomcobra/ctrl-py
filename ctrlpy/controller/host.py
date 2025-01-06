@@ -30,11 +30,12 @@ def create_host(
     host = inventory.get_object(objuuid)
 
     host.object = {
-        "type" : "host",
-        "parent" : parent_objuuid,
-        "children" : [],
-        "name" : name,
-        "icon" : "/images/host_icon.png",
+        "type": "host",
+        "parent": parent_objuuid,
+        "children": [],
+        "name": name,
+        "url": "",
+        "icon": "/images/host_icon.png",
         "enabled": True,
         "loglevel": "20",
         "seconds": "*",
@@ -59,6 +60,16 @@ def create_host(
                 "action" : {
                     "method" : "edit host",
                     "route" : "inventory/get_object",
+                    "params" : {
+                        "objuuid" : host.objuuid
+                    }
+                }
+            },
+            "wake" : {
+                "label" : "Wake",
+                "action" : {
+                    "method" : "wake host",
+                    "route" : "host/wake",
                     "params" : {
                         "objuuid" : host.objuuid
                     }
